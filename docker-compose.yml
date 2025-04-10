@@ -1,0 +1,56 @@
+services:
+  backend:
+    build:
+      context: .
+    ports:
+      - "8080:8080"
+      - "35729:35729"
+      - "8000:8000"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgresdb:5432/${DB_NAME}
+      SPRING_DATASOURCE_USERNAME: ${DB_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
+      PROFILE: ${PROFILE}
+    volumes:
+      - .:/app
+    depends_on:
+      - postgresdb
+    profiles:
+      - dev
+      - test
+
+  postgresdb:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    profiles:
+      - dev
+      - test
+
+  h2db:
+    image: oscarfonts/h2:latest
+    container_name: h2db
+    ports:
+      - "9092:9092"
+    profiles:
+      - test
+
+  pgadmin:
+    image: dpage/pgadmin4
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
+    ports:
+      - "5050:80"
+    profiles:
+      - dev
+
+volumes:
+  db_data:
