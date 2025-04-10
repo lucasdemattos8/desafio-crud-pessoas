@@ -1,12 +1,16 @@
 package com.db.crud_pessoas.api.dto.request.pessoa;
 
 import java.time.LocalDate;
+import java.util.List;
+
+import com.db.crud_pessoas.api.dto.request.endereco.EnderecoRequisicaoDTO;
 
 public class PessoaRequisicaoDTO {
     
     private String nome;
     private LocalDate dataDeNascimento;
     private String cpf;
+    private List<EnderecoRequisicaoDTO> enderecos;
     
     public PessoaRequisicaoDTO() {
     }
@@ -33,5 +37,13 @@ public class PessoaRequisicaoDTO {
 
     public void setCpf(String cpf) {
         this.cpf = cpf;
+    }
+
+    public List<EnderecoRequisicaoDTO> getEnderecos() {
+        return enderecos;
+    }
+
+    public void setEnderecos(List<EnderecoRequisicaoDTO> enderecos) {
+        this.enderecos = enderecos;
     }
 }
