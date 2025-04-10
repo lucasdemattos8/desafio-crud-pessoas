@@ -3,6 +3,8 @@ package com.db.crud_pessoas.domain.service;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.springframework.stereotype.Service;
+
 import com.db.crud_pessoas.api.dto.PessoaDTO;
 import com.db.crud_pessoas.api.dto.request.pessoa.PessoaRequisicaoDTO;
 import com.db.crud_pessoas.domain.entity.Pessoa;
@@ -10,6 +12,7 @@ import com.db.crud_pessoas.domain.repository.EnderecoRepository;
 import com.db.crud_pessoas.domain.repository.PessoaRepository;
 import com.db.crud_pessoas.domain.service.interfaces.IPessoaService;
 
+@Service
 public class PessoaService implements IPessoaService {
 
     private PessoaRepository pessoaRepository;
