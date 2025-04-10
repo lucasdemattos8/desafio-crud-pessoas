@@ -3,6 +3,7 @@ package com.db.crud_pessoas.domain.entity;
 import java.time.LocalDate;
 import java.util.List;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -26,7 +27,7 @@ public class Pessoa {
     @NotNull
     private String cpf;
 
-    @OneToMany(mappedBy = "pessoa")
+    @OneToMany(mappedBy = "pessoa", cascade = CascadeType.ALL)
     private List<Endereco> enderecos;
 
     public Pessoa() {
