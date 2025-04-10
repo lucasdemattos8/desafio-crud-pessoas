@@ -48,4 +48,4 @@ Este projeto implementa um **CRUD** simples em **Java puro** com as entidades **
 1. **Clonar o repositório**
    ```bash
    git clone https://github.com/seu-usuario/time-alice.git
-   cd time-alice
+   cd desafio-crud-pessoas
