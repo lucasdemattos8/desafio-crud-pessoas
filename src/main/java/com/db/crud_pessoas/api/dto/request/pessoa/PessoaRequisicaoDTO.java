@@ -15,6 +15,14 @@ public class PessoaRequisicaoDTO {
     public PessoaRequisicaoDTO() {
     }
 
+    public PessoaRequisicaoDTO(String nome, LocalDate dataDeNascimento, String cpf,
+            List<EnderecoRequisicaoDTO> enderecos) {
+        this.nome = nome;
+        this.dataDeNascimento = dataDeNascimento;
+        this.cpf = cpf;
+        this.enderecos = enderecos;
+    }
+
     public String getNome() {
         return nome;
     }

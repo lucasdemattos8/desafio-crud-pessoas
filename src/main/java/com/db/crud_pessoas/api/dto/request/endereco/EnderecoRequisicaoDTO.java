@@ -3,13 +3,22 @@ package com.db.crud_pessoas.api.dto.request.endereco;
 public class EnderecoRequisicaoDTO {
     
     private String rua;
-    private String numero;    
+    private Integer numero;    
     private String bairro;
     private String cidade;
     private String estado;
     private String cep;
     
     public EnderecoRequisicaoDTO() {
+    }
+
+    public EnderecoRequisicaoDTO(String rua, Integer numero, String bairro, String cidade, String estado, String cep) {
+        this.rua = rua;
+        this.numero = numero;
+        this.bairro = bairro;
+        this.cidade = cidade;
+        this.estado = estado;
+        this.cep = cep;
     }
 
     public String getRua() {
@@ -20,11 +29,11 @@ public class EnderecoRequisicaoDTO {
         this.rua = rua;
     }
 
-    public String getNumero() {
+    public Integer getNumero() {
         return numero;
     }
 
-    public void setNumero(String numero) {
+    public void setNumero(Integer numero) {
         this.numero = numero;
     }
 
