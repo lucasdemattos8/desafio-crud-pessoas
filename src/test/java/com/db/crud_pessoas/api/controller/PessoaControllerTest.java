@@ -133,10 +133,13 @@ public class PessoaControllerTest {
 
         ResponseEntity<PessoaDTO> resposta = pessoaController.cadastrarPessoa(requisicao);
 
+        final int idadeEsperada = 35;
+
         assertNotNull(resposta);
         assertEquals(201, resposta.getStatusCode().value());
         assertEquals(pessoaRetornada.getId(), resposta.getBody().getId());
         assertEquals(pessoaRetornada.getNome(), resposta.getBody().getNome());
+        assertEquals(idadeEsperada, resposta.getBody().getIdade());
         verify(pessoaService, times(1)).criarPessoa(any(PessoaRequisicaoDTO.class));
     }
 

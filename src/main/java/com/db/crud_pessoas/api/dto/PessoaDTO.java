@@ -1,6 +1,7 @@
 package com.db.crud_pessoas.api.dto;
 
 import java.time.LocalDate;
+import java.time.Period;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -14,6 +15,7 @@ public class PessoaDTO {
     private Long id;
     private String nome;
     private LocalDate dataDeNascimento;
+    private int idade;
     private String cpf;
     private List<EnderecoResumoDTO> enderecos;
 
@@ -26,6 +28,7 @@ public class PessoaDTO {
         this.dataDeNascimento = pessoa.getDataDeNascimento();
         this.cpf = pessoa.getCpf();
         this.enderecos = toEnderecosResumoDTO(pessoa.getEnderecos());
+        this.idade = calcularIdade();
     }
     
     public Long getId() {
@@ -52,6 +55,14 @@ public class PessoaDTO {
         this.dataDeNascimento = dataDeNascimento;
     }
 
+    public int getIdade() {
+        return idade;
+    }
+
+    public void setIdade(int idade) {
+        this.idade = idade;
+    }
+
     public String getCpf() {
         return cpf;
     }
@@ -66,6 +77,13 @@ public class PessoaDTO {
 
     public void setEnderecos(List<EnderecoResumoDTO> enderecos) {
         this.enderecos = enderecos;
+    }
+
+    private int calcularIdade() {
+        if (dataDeNascimento == null) {
+            return 0;
+        }
+        return Period.between(dataDeNascimento, LocalDate.now()).getYears();
     }
 
     private static List<EnderecoResumoDTO> toEnderecosResumoDTO(List<Endereco> enderecos) {
