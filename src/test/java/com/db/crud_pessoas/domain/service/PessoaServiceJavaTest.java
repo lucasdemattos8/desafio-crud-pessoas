@@ -7,12 +7,14 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -28,6 +30,8 @@ import com.db.crud_pessoas.domain.entity.Endereco;
 import com.db.crud_pessoas.domain.entity.Pessoa;
 import com.db.crud_pessoas.domain.repository.EnderecoRepository;
 import com.db.crud_pessoas.domain.repository.PessoaRepository;
+
+import jakarta.persistence.EntityNotFoundException;
 
 public class PessoaServiceJavaTest {
 
@@ -197,6 +201,101 @@ public class PessoaServiceJavaTest {
         assertEquals("O campo de Endereço é um campo obrigatório.", excecaoResposta.getMessage());
     }
 
+    @Test
+    void deveAtualizarNomeDaPessoaQuandoInformado() {
+        Long id = 1L;
+        Pessoa pessoaExistente = new Pessoa();
+        pessoaExistente.setId(id);
+        pessoaExistente.setNome("Nome Antigo");
+        pessoaExistente.setCpf("12345678900");
+        
+        PessoaRequisicaoDTO requisicao = new PessoaRequisicaoDTO();
+        requisicao.setNome("Nome Novo");
+        
+        when(pessoaRepository.findById(id)).thenReturn(Optional.of(pessoaExistente));
+        when(pessoaRepository.save(any(Pessoa.class))).thenReturn(pessoaExistente);
+
+        PessoaDTO resultado = pessoaService.atualizarPessoa(id, requisicao);
+
+        assertNotNull(resultado);
+        assertEquals("Nome Novo", resultado.getNome());
+        assertEquals("12345678900", resultado.getCpf());
+        verify(pessoaRepository).findById(id);
+        verify(pessoaRepository).save(any(Pessoa.class));
+    }
+
+    @Test
+    void deveLancarExcecaoQuandoPessoaNaoEncontrada() {
+        Long id = 1L;
+        when(pessoaRepository.findById(id)).thenReturn(Optional.empty());
+        
+        PessoaRequisicaoDTO requisicao = new PessoaRequisicaoDTO();
+        requisicao.setNome("Nome Novo");
+        
+        EntityNotFoundException exception = assertThrows(
+            EntityNotFoundException.class,
+            () -> pessoaService.atualizarPessoa(id, requisicao)
+        );
+        
+        assertEquals("Pessoa não encontrada com o id 1", exception.getMessage());
+    }
+
+    @Test
+    void deveAtualizarEnderecosDaPessoa() {
+        Long id = 1L;
+        Pessoa pessoaExistente = new Pessoa();
+        pessoaExistente.setId(id);
+        pessoaExistente.setNome("Nome Teste");
+        
+        List<Endereco> enderecosAntigos = Arrays.asList(
+            criarEndereco("Rua Antiga", 100, "Bairro Antigo", "Cidade Antiga")
+        );
+        pessoaExistente.setEnderecos(enderecosAntigos);
+        
+        PessoaRequisicaoDTO requisicao = new PessoaRequisicaoDTO();
+        EnderecoRequisicaoDTO novoEnderecoDTO = new EnderecoRequisicaoDTO(
+            "Nova Rua", 200, "Novo Bairro", "Nova Cidade", "RS", "90000-000"
+        );
+        requisicao.setEnderecos(Arrays.asList(novoEnderecoDTO));
+        
+        List<Endereco> novosEnderecos = criarEnderecosDominio(requisicao.getEnderecos());
+        
+        when(pessoaRepository.findById(id)).thenReturn(Optional.of(pessoaExistente));
+        when(enderecoRepository.saveAll(anyList())).thenReturn(novosEnderecos);
+        when(pessoaRepository.save(any(Pessoa.class))).thenReturn(pessoaExistente);
+
+        PessoaDTO resultado = pessoaService.atualizarPessoa(id, requisicao);
+
+        assertNotNull(resultado);
+        assertNotNull(resultado.getEnderecos());
+        assertEquals(1, resultado.getEnderecos().size());
+        assertEquals("Nova Rua", resultado.getEnderecos().get(0).getRua());
+        assertEquals("Nova Cidade", resultado.getEnderecos().get(0).getCidade());
+        verify(enderecoRepository).deleteAll(enderecosAntigos);
+        verify(enderecoRepository).saveAll(anyList());
+        verify(pessoaRepository).save(any(Pessoa.class));
+    }
+
+    @Test
+    void deveManterDadosExistentesQuandoNaoInformados() {
+        Long id = 1L;
+        Pessoa pessoaExistente = new Pessoa();
+        pessoaExistente.setId(id);
+        pessoaExistente.setNome("Nome Original");
+        pessoaExistente.setCpf("12345678900");
+        
+        PessoaRequisicaoDTO requisicao = new PessoaRequisicaoDTO();
+        
+        when(pessoaRepository.findById(id)).thenReturn(Optional.of(pessoaExistente));
+        when(pessoaRepository.save(any(Pessoa.class))).thenReturn(pessoaExistente);
+
+        PessoaDTO resultado = pessoaService.atualizarPessoa(id, requisicao);
+        
+        assertNotNull(resultado);
+        assertEquals("Nome Original", resultado.getNome());
+        assertEquals("12345678900", resultado.getCpf());
+    }
+
     private PessoaRequisicaoDTO criarPessoaRequisicaoDTO() {
         EnderecoRequisicaoDTO endereco1 = new EnderecoRequisicaoDTO(
             "Rua Platina", 123, "Santo Afonso", 
@@ -235,6 +334,17 @@ public class PessoaServiceJavaTest {
                 return endereco;
             })
             .collect(Collectors.toList());
+    }
+
+    private Endereco criarEndereco(String rua, Integer numero, String bairro, String cidade) {
+        Endereco endereco = new Endereco();
+        endereco.setRua(rua);
+        endereco.setNumero(numero);
+        endereco.setBairro(bairro);
+        endereco.setCidade(cidade);
+        endereco.setEstado("RS");
+        endereco.setCep("90000-000");
+        return endereco;
     }
         
 }

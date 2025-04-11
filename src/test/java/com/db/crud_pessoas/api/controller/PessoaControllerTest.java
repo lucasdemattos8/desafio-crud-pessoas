@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -143,6 +144,37 @@ public class PessoaControllerTest {
         Exception exception = assertThrows(IllegalArgumentException.class, 
             () -> pessoaController.cadastrarPessoa(requisicao));
         assertEquals("Dados inválidos", exception.getMessage());
+    }
+
+    @Test
+    void deveAtualizarPessoaComSucesso() {
+        PessoaRequisicaoDTO requisicao = criarPessoaRequisicaoDTO();
+        PessoaDTO pessoaRetornada = criarPessoaDTO();
+        final Long idASerBuscado = 1L;
+        
+        when(pessoaService.atualizarPessoa(anyLong(), any(PessoaRequisicaoDTO.class)))
+            .thenReturn(pessoaRetornada);
+
+        ResponseEntity<PessoaDTO> resposta = pessoaController.atualizarPessoa(idASerBuscado, requisicao);
+
+        assertNotNull(resposta);
+        assertEquals(200, resposta.getStatusCode().value());
+        assertEquals(pessoaRetornada.getId(), resposta.getBody().getId());
+        assertEquals(pessoaRetornada.getNome(), resposta.getBody().getNome());
+        verify(pessoaService, times(1)).atualizarPessoa(anyLong(), any(PessoaRequisicaoDTO.class));
+    }
+
+    @Test
+    void deveLancarExcecaoQuandoIDNaoExistirEmBanco() {
+        PessoaRequisicaoDTO requisicao = new PessoaRequisicaoDTO();
+        final Long idASerBuscado = 1L;
+
+        when(pessoaService.atualizarPessoa(anyLong(), any(PessoaRequisicaoDTO.class)))
+            .thenThrow(new IllegalArgumentException("Pessoa não encontrada com o id " + 1L));
+
+        Exception exception = assertThrows(IllegalArgumentException.class, 
+            () -> pessoaController.atualizarPessoa(idASerBuscado, requisicao));
+        assertEquals("Pessoa não encontrada com o id 1", exception.getMessage());
     }
 
     private PessoaRequisicaoDTO criarPessoaRequisicaoDTO() {

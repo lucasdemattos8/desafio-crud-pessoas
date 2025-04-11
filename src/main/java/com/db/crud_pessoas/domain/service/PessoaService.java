@@ -4,14 +4,18 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.db.crud_pessoas.api.dto.PessoaDTO;
+import com.db.crud_pessoas.api.dto.request.endereco.EnderecoRequisicaoDTO;
 import com.db.crud_pessoas.api.dto.request.pessoa.PessoaRequisicaoDTO;
 import com.db.crud_pessoas.domain.entity.Endereco;
 import com.db.crud_pessoas.domain.entity.Pessoa;
 import com.db.crud_pessoas.domain.repository.EnderecoRepository;
 import com.db.crud_pessoas.domain.repository.PessoaRepository;
 import com.db.crud_pessoas.domain.service.interfaces.IPessoaService;
+
+import jakarta.persistence.EntityNotFoundException;
 
 @Service
 public class PessoaService implements IPessoaService {
@@ -41,19 +45,8 @@ public class PessoaService implements IPessoaService {
         Pessoa pessoaSalva = pessoaRepository.save(pessoaASerSalva);
         
         if (pessoaDTO.getEnderecos() != null) {
-            List<Endereco> enderecos = pessoaDTO.getEnderecos().stream()
-                .map(enderecoDTO -> {
-                    Endereco endereco = new Endereco();
-                    endereco.setRua(enderecoDTO.getRua());
-                    endereco.setNumero(enderecoDTO.getNumero());
-                    endereco.setBairro(enderecoDTO.getBairro());
-                    endereco.setCidade(enderecoDTO.getCidade());
-                    endereco.setEstado(enderecoDTO.getEstado());
-                    endereco.setCep(enderecoDTO.getCep());
-                    endereco.setPessoa(pessoaSalva);
-                    return endereco;
-                })
-                .collect(Collectors.toList());
+            List<EnderecoRequisicaoDTO> enderecosDTO = pessoaDTO.getEnderecos();
+            List<Endereco> enderecos = converterListaEnderecoDeDTOParaDominio(enderecosDTO, pessoaSalva);
             
             enderecos = enderecoRepository.saveAll(enderecos);
             
@@ -63,9 +56,33 @@ public class PessoaService implements IPessoaService {
         return new PessoaDTO(pessoaSalva);
     }
 
-    public PessoaDTO atualizarPessoa(Long id, PessoaRequisicaoDTO pessoa) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'atualizarPessoa'");
+    @Transactional
+    public PessoaDTO atualizarPessoa(Long id, PessoaRequisicaoDTO pessoaRequisicaoDTO) {
+        Pessoa pessoa = pessoaRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("Pessoa não encontrada com o id " + id));
+        if (pessoaRequisicaoDTO.getNome() != null) {
+            pessoa.setNome(pessoaRequisicaoDTO.getNome());
+        }
+        if (pessoaRequisicaoDTO.getCpf() != null) {
+            pessoa.setCpf(pessoaRequisicaoDTO.getCpf());
+        }
+        if (pessoaRequisicaoDTO.getDataDeNascimento() != null) {
+            pessoa.setDataDeNascimento(pessoaRequisicaoDTO.getDataDeNascimento());
+        }
+        if (pessoaRequisicaoDTO.getEnderecos() != null) {
+            enderecoRepository.deleteAll(pessoa.getEnderecos());
+            
+            List<Endereco> novosEnderecos = converterListaEnderecoDeDTOParaDominio(
+                pessoaRequisicaoDTO.getEnderecos(), 
+                pessoa
+            );
+            
+            novosEnderecos = enderecoRepository.saveAll(novosEnderecos);
+            pessoa.setEnderecos(novosEnderecos);
+        }
+
+        Pessoa pessoaAtualizada = pessoaRepository.save(pessoa);
+
+        return new PessoaDTO(pessoaAtualizada);
     }
 
     public void excluirPessoa(Long id) {
@@ -75,6 +92,22 @@ public class PessoaService implements IPessoaService {
 
     private List<PessoaDTO> converterListaDeDominioParaDTO(List<Pessoa> listaPessoas) {
         return listaPessoas.stream().map(PessoaDTO::new).collect(Collectors.toList());
+    }
+
+    private List<Endereco> converterListaEnderecoDeDTOParaDominio(List<EnderecoRequisicaoDTO> listaEnderecos, Pessoa pessoa) {
+        return listaEnderecos.stream()
+                .map(enderecoDTO -> {
+                    Endereco endereco = new Endereco();
+                    endereco.setRua(enderecoDTO.getRua());
+                    endereco.setNumero(enderecoDTO.getNumero());
+                    endereco.setBairro(enderecoDTO.getBairro());
+                    endereco.setCidade(enderecoDTO.getCidade());
+                    endereco.setEstado(enderecoDTO.getEstado());
+                    endereco.setCep(enderecoDTO.getCep());
+                    endereco.setPessoa(pessoa);
+                    return endereco;
+                })
+                .collect(Collectors.toList());
     }
 
     private void validarCadastroDTO(PessoaRequisicaoDTO requisicaoDTO) {
