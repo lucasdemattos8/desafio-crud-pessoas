@@ -23,6 +23,9 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 
 import com.db.crud_pessoas.api.dto.PessoaDTO;
@@ -47,72 +50,56 @@ public class PessoaControllerTest {
 
     @Test
     void deveRespostaComCorpoDeListaVaziaQuandoNaoHouverPessoasCadastradas() {
-        final List<PessoaDTO> listaVazia = new ArrayList<>();
-        when(pessoaService.listarTodasPessoas()).thenReturn(listaVazia);
+        Page<PessoaDTO> paginaVazia = new PageImpl<>(new ArrayList<>());
+        when(pessoaService.listarTodasPessoas(any(Pageable.class))).thenReturn(paginaVazia);
 
-        final ResponseEntity<List<PessoaDTO>> resposta = pessoaController.listarTodasPessoas();
+        ResponseEntity<Page<PessoaDTO>> resposta = pessoaController.listarTodasPessoas(0, 10, "id");
 
         assertNotNull(resposta);
         assertEquals(200, resposta.getStatusCode().value());
-
-        assertNotNull(resposta.getBody());
         assertTrue(resposta.getBody().isEmpty());
-
-        verify(pessoaService, times(1)).listarTodasPessoas();
+        verify(pessoaService).listarTodasPessoas(any(Pageable.class));
     }
 
     @Test
     void deveRetornarListaComUmaPessoaCadastrada() {
         PessoaDTO pessoaDTO = criarPessoaDTO();
-        
-        final List<PessoaDTO> listaPessoas = List.of(pessoaDTO);
-        when(pessoaService.listarTodasPessoas()).thenReturn(listaPessoas);
+        Page<PessoaDTO> pagina = new PageImpl<>(List.of(pessoaDTO));
+        when(pessoaService.listarTodasPessoas(any(Pageable.class))).thenReturn(pagina);
 
-        ResponseEntity<List<PessoaDTO>> resposta = pessoaController.listarTodasPessoas();
+        ResponseEntity<Page<PessoaDTO>> resposta = pessoaController.listarTodasPessoas(0, 10, "id");
+        final PessoaDTO pessoaDTOResposta = resposta.getBody().getContent().get(0);
 
         assertNotNull(resposta);
         assertEquals(200, resposta.getStatusCode().value());
-        
-        final List<PessoaDTO> corpoDaResposta = resposta.getBody();
-        assertNotNull(corpoDaResposta);
-        assertEquals(1, corpoDaResposta.size());
-        
-        final PessoaDTO pessoaRetornada = corpoDaResposta.get(0);
-        assertEquals(pessoaDTO.getId(), pessoaRetornada.getId());
-        assertEquals(pessoaDTO.getNome(), pessoaRetornada.getNome());
-        assertEquals(pessoaDTO.getCpf(), pessoaRetornada.getCpf());
-        
-        verify(pessoaService, times(1)).listarTodasPessoas();
+        assertNotNull(resposta.getBody());
+        assertEquals(1, resposta.getBody().getTotalElements());
+        assertEquals(pessoaDTO.getId(), pessoaDTOResposta.getId());
+        assertEquals(pessoaDTO.getNome(), pessoaDTOResposta.getNome());
+        verify(pessoaService).listarTodasPessoas(any(Pageable.class));
     }
 
     @Test
     void deveRetornarListaComMultiplasPessoas() {
         LocalDate dataDeNascimento = LocalDate.of(1990, 1, 1);
-    PessoaDTO pessoa1 = new PessoaDTO(1L, "João Silva", dataDeNascimento, "12345678900", null);
-    PessoaDTO pessoa2 = new PessoaDTO(2L, "Maria Santos", dataDeNascimento, "98765432100", null);
+        PessoaDTO pessoa1 = new PessoaDTO(1L, "João Silva", dataDeNascimento, "12345678900", null);
+        PessoaDTO pessoa2 = new PessoaDTO(2L, "Maria Santos", dataDeNascimento, "98765432100", null);
         
-        List<PessoaDTO> listaPessoas = List.of(pessoa1, pessoa2);
-        when(pessoaService.listarTodasPessoas()).thenReturn(listaPessoas);
+        Page<PessoaDTO> pagina = new PageImpl<>(List.of(pessoa1, pessoa2));
+        when(pessoaService.listarTodasPessoas(any(Pageable.class))).thenReturn(pagina);
 
-        ResponseEntity<List<PessoaDTO>> resposta = pessoaController.listarTodasPessoas();
+        ResponseEntity<Page<PessoaDTO>> resposta = pessoaController.listarTodasPessoas(0, 10, "nome");
+        final PessoaDTO pessoaDTOResposta1 = resposta.getBody().getContent().get(0);
+        final PessoaDTO pessoaDTOResposta2 = resposta.getBody().getContent().get(1);
+
 
         assertNotNull(resposta);
         assertEquals(200, resposta.getStatusCode().value());
-        
-        List<PessoaDTO> corpoDaResposta = resposta.getBody();
-        assertNotNull(corpoDaResposta);
-        assertEquals(2, corpoDaResposta.size());
-
-        final PessoaDTO pessoaRetornada1 = corpoDaResposta.get(0);
-        final PessoaDTO pessoaRetornada2 = corpoDaResposta.get(1);
-        
-        assertEquals(pessoa1.getId(), pessoaRetornada1.getId());
-        assertEquals(pessoa1.getNome(), pessoaRetornada1.getNome());
-        
-        assertEquals(pessoa2.getId(), pessoaRetornada2.getId());
-        assertEquals(pessoa2.getNome(), pessoaRetornada2.getNome());
-        
-        verify(pessoaService, times(1)).listarTodasPessoas();
+        assertNotNull(resposta.getBody());
+        assertEquals(2, resposta.getBody().getTotalElements());
+        assertEquals(pessoa1.getNome(), pessoaDTOResposta1.getNome());
+        assertEquals(pessoa2.getNome(), pessoaDTOResposta2.getNome());
+        verify(pessoaService).listarTodasPessoas(any(Pageable.class));
     }
 
     @Test

@@ -3,6 +3,8 @@ package com.db.crud_pessoas.domain.service;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,10 +30,9 @@ public class PessoaService implements IPessoaService {
         this.enderecoRepository = enderecoRepository;
     }
 
-    public List<PessoaDTO> listarTodasPessoas() {
-        List<Pessoa> listaDePessoasDominio = pessoaRepository.findAll();
-        List<PessoaDTO> listaDePessoasDTO = converterListaDeDominioParaDTO(listaDePessoasDominio);
-        return listaDePessoasDTO;
+    public Page<PessoaDTO> listarTodasPessoas(Pageable pageable) {
+        Page<Pessoa> paginaPessoas = pessoaRepository.findAll(pageable);
+        return paginaPessoas.map(PessoaDTO::new);
     }
 
     public PessoaDTO criarPessoa(PessoaRequisicaoDTO pessoaDTO) {
@@ -91,10 +92,6 @@ public class PessoaService implements IPessoaService {
             throw new EntityNotFoundException("Pessoa não encontrada com o id " + id);
         }
         pessoaRepository.deleteById(id);
-    }
-
-    private List<PessoaDTO> converterListaDeDominioParaDTO(List<Pessoa> listaPessoas) {
-        return listaPessoas.stream().map(PessoaDTO::new).collect(Collectors.toList());
     }
 
     private List<Endereco> converterListaEnderecoDeDTOParaDominio(List<EnderecoRequisicaoDTO> listaEnderecos, Pessoa pessoa) {

@@ -1,13 +1,16 @@
 package com.db.crud_pessoas.api.controller;
 
-import java.util.List;
-
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.db.crud_pessoas.api.dto.PessoaDTO;
@@ -28,9 +31,15 @@ public class PessoaController {
     }
 
     @GetMapping
-    public ResponseEntity<List<PessoaDTO>> listarTodasPessoas() {
-        List<PessoaDTO> listaDePessoasDominio = pessoaService.listarTodasPessoas();
-        return ResponseEntity.ok().body(listaDePessoasDominio);
+    public ResponseEntity<Page<PessoaDTO>> listarTodasPessoas(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "id") String sort) {
+        
+        Pageable pageable = PageRequest.of(page, size, Sort.by(sort));
+        Page<PessoaDTO> resultado = pessoaService.listarTodasPessoas(pageable);
+        
+        return ResponseEntity.ok(resultado);
     }
 
     @PostMapping
