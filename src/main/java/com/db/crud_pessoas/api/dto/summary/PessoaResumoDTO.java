@@ -21,6 +21,13 @@ public class PessoaResumoDTO {
         this.cpf = pessoa.getCpf();
     }
 
+    public PessoaResumoDTO(Long id, String nome, LocalDate dataDeNascimento, String cpf) {
+        this.id = id;
+        this.nome = nome;
+        this.dataDeNascimento = dataDeNascimento;
+        this.cpf = cpf;
+    }
+
     public Long getId() {
         return id;
     }

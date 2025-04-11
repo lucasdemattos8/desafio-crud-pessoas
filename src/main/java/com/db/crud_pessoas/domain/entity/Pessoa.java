@@ -34,6 +34,15 @@ public class Pessoa {
 
     public Pessoa() {
     }
+    
+    public Pessoa(Long id, String nome, LocalDate dataDeNascimento, String cpf,
+            List<Endereco> enderecos) {
+        this.id = id;
+        this.nome = nome;
+        this.dataDeNascimento = dataDeNascimento;
+        this.cpf = cpf;
+        this.enderecos = enderecos;
+    }
 
     public Long getId() {
         return id;

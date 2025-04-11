@@ -30,7 +30,17 @@ public class PessoaDTO {
         this.enderecos = toEnderecosResumoDTO(pessoa.getEnderecos());
         this.idade = calcularIdade();
     }
-    
+
+    public PessoaDTO(Long id, String nome, LocalDate dataDeNascimento, String cpf,
+            List<EnderecoResumoDTO> enderecos) {
+        this.id = id;
+        this.nome = nome;
+        this.dataDeNascimento = dataDeNascimento;
+        this.idade = calcularIdade();
+        this.cpf = cpf;
+        this.enderecos = enderecos;
+    }
+
     public Long getId() {
         return id;
     }
