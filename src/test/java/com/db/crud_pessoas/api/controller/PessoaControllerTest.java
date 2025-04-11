@@ -28,7 +28,6 @@ import org.springframework.http.ResponseEntity;
 import com.db.crud_pessoas.api.dto.PessoaDTO;
 import com.db.crud_pessoas.api.dto.request.endereco.EnderecoRequisicaoDTO;
 import com.db.crud_pessoas.api.dto.request.pessoa.PessoaRequisicaoDTO;
-import com.db.crud_pessoas.domain.entity.Pessoa;
 import com.db.crud_pessoas.domain.service.interfaces.IPessoaService;
 
 import jakarta.persistence.EntityNotFoundException;
@@ -64,10 +63,7 @@ public class PessoaControllerTest {
 
     @Test
     void deveRetornarListaComUmaPessoaCadastrada() {
-        PessoaDTO pessoaDTO = new PessoaDTO();
-        pessoaDTO.setId(1L);
-        pessoaDTO.setNome("João Silva");
-        pessoaDTO.setCpf("12345678900");
+        PessoaDTO pessoaDTO = criarPessoaDTO();
         
         final List<PessoaDTO> listaPessoas = List.of(pessoaDTO);
         when(pessoaService.listarTodasPessoas()).thenReturn(listaPessoas);
@@ -91,13 +87,9 @@ public class PessoaControllerTest {
 
     @Test
     void deveRetornarListaComMultiplasPessoas() {
-        PessoaDTO pessoa1 = new PessoaDTO();
-        pessoa1.setId(1L);
-        pessoa1.setNome("João Silva");
-        
-        PessoaDTO pessoa2 = new PessoaDTO();
-        pessoa2.setId(2L);
-        pessoa2.setNome("Maria Santos");
+        LocalDate dataDeNascimento = LocalDate.of(1990, 1, 1);
+    PessoaDTO pessoa1 = new PessoaDTO(1L, "João Silva", dataDeNascimento, "12345678900", null);
+    PessoaDTO pessoa2 = new PessoaDTO(2L, "Maria Santos", dataDeNascimento, "98765432100", null);
         
         List<PessoaDTO> listaPessoas = List.of(pessoa1, pessoa2);
         when(pessoaService.listarTodasPessoas()).thenReturn(listaPessoas);
@@ -220,32 +212,25 @@ public class PessoaControllerTest {
     }
 
     private PessoaRequisicaoDTO criarPessoaRequisicaoDTO() {
-        PessoaRequisicaoDTO dto = new PessoaRequisicaoDTO();
-        dto.setNome("João Silva");
-        dto.setCpf("12345678900");
-        dto.setDataDeNascimento(LocalDate.of(1990, 1, 1));
-        dto.setEnderecos(Arrays.asList(criarEnderecoRequisicaoDTO()));
-        return dto;
+        LocalDate dataDeNascimento = LocalDate.of(1990, 1, 1);  
+        List<EnderecoRequisicaoDTO> listaEnderecos = Arrays.asList(criarEnderecoRequisicaoDTO());
+        return new PessoaRequisicaoDTO(
+            "João Silva", dataDeNascimento, "12345678900", listaEnderecos
+            );
     }
 
     private EnderecoRequisicaoDTO criarEnderecoRequisicaoDTO() {
-        EnderecoRequisicaoDTO endereco = new EnderecoRequisicaoDTO();
-        endereco.setRua("Rua Teste");
-        endereco.setNumero(123);
-        endereco.setBairro("Bairro Teste");
-        endereco.setCidade("Cidade Teste");
-        endereco.setEstado("Estado Teste");
-        endereco.setCep("12345678");
-        return endereco;
+        return new EnderecoRequisicaoDTO(
+            "Rua Teste", 123, "Bairro Teste",
+            "Cidade Teste", "Estado Teste", "12345678"
+            );
     }
 
     private PessoaDTO criarPessoaDTO() {
-        Pessoa pessoa = new Pessoa();
-        pessoa.setId(1L);
-        pessoa.setNome("João Silva");
-        pessoa.setCpf("12345678900");
-        pessoa.setDataDeNascimento(LocalDate.of(1990, 1, 1));
-        return new PessoaDTO(pessoa);
+        LocalDate dataDeNascimento = LocalDate.of(1990, 1, 1);        
+        return new PessoaDTO(
+            1L, "João Silva", dataDeNascimento, "12345678900", null
+            );
     }
     
 }

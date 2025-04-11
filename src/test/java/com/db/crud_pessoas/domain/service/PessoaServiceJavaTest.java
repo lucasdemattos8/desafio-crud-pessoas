@@ -57,11 +57,9 @@ public class PessoaServiceJavaTest {
 
     @Test
     void deveRetornarListaEConverterPessoaParaDTOCorretamente() {
-        Pessoa pessoa = new Pessoa();
-        pessoa.setId(1L);
-        pessoa.setNome("João Silva");
-        pessoa.setCpf("12345678900");
-        pessoa.setDataDeNascimento(LocalDate.of(1990, 1, 1));
+        LocalDate dataDeAniversario = LocalDate.of(1990, 1, 1);
+        Pessoa pessoa = new Pessoa(
+            1L, "João Silva", dataDeAniversario, "12345678900", null);
         
         List<Pessoa> listaPessoas = Arrays.asList(pessoa);
         when(pessoaRepository.findAll()).thenReturn(listaPessoas);
@@ -207,10 +205,8 @@ public class PessoaServiceJavaTest {
     @Test
     void deveAtualizarNomeDaPessoaQuandoInformado() {
         Long id = 1L;
-        Pessoa pessoaExistente = new Pessoa();
-        pessoaExistente.setId(id);
-        pessoaExistente.setNome("Nome Antigo");
-        pessoaExistente.setCpf("12345678900");
+        Pessoa pessoaExistente = new Pessoa(
+            1L, "Nome Antigo", null, "12345678900", null);
         
         PessoaRequisicaoDTO requisicao = new PessoaRequisicaoDTO();
         requisicao.setNome("Nome Novo");
@@ -342,38 +338,28 @@ public class PessoaServiceJavaTest {
     }
 
     private Pessoa criarPessoaDominio(PessoaRequisicaoDTO requisicao) {
-        Pessoa pessoa = new Pessoa();
-        pessoa.setId(1L);
-        pessoa.setNome(requisicao.getNome());
-        pessoa.setCpf(requisicao.getCpf());
-        pessoa.setDataDeNascimento(requisicao.getDataDeNascimento());
-        return pessoa;
+        return new Pessoa(
+            1L, requisicao.getNome(), requisicao.getDataDeNascimento(),
+            requisicao.getCpf(), null);
     }
 
     private List<Endereco> criarEnderecosDominio(List<EnderecoRequisicaoDTO> enderecosDTO) {
         return enderecosDTO.stream()
             .map(enderecoDTO -> {
-                Endereco endereco = new Endereco();
-                endereco.setRua(enderecoDTO.getRua());
-                endereco.setNumero(enderecoDTO.getNumero());
-                endereco.setBairro(enderecoDTO.getBairro());
-                endereco.setCidade(enderecoDTO.getCidade());
-                endereco.setEstado(enderecoDTO.getEstado());
-                endereco.setCep(enderecoDTO.getCep());
-                return endereco;
+                return new Endereco(
+                    null, enderecoDTO.getRua(),
+                    enderecoDTO.getNumero(), enderecoDTO.getBairro(),
+                    enderecoDTO.getCidade(), enderecoDTO.getEstado(),
+                    enderecoDTO.getCep(), null);
             })
             .collect(Collectors.toList());
     }
 
     private Endereco criarEndereco(String rua, Integer numero, String bairro, String cidade) {
-        Endereco endereco = new Endereco();
-        endereco.setRua(rua);
-        endereco.setNumero(numero);
-        endereco.setBairro(bairro);
-        endereco.setCidade(cidade);
-        endereco.setEstado("RS");
-        endereco.setCep("90000-000");
-        return endereco;
+        return new Endereco(
+            null, rua, numero, bairro,
+            cidade, "RS", "90000-000",
+            null);
     }
         
 }
