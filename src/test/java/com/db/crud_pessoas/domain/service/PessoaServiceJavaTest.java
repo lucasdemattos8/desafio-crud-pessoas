@@ -33,6 +33,7 @@ import org.springframework.data.domain.Pageable;
 import com.db.crud_pessoas.api.dto.PessoaDTO;
 import com.db.crud_pessoas.api.dto.request.endereco.EnderecoRequisicaoDTO;
 import com.db.crud_pessoas.api.dto.request.pessoa.PessoaRequisicaoDTO;
+import com.db.crud_pessoas.api.dto.summary.EnderecoResumoDTO;
 import com.db.crud_pessoas.domain.entity.Endereco;
 import com.db.crud_pessoas.domain.entity.Pessoa;
 import com.db.crud_pessoas.domain.repository.EnderecoRepository;
@@ -269,12 +270,13 @@ public class PessoaServiceJavaTest {
         when(pessoaRepository.save(any(Pessoa.class))).thenReturn(pessoaExistente);
 
         PessoaDTO resultado = pessoaService.atualizarPessoa(id, requisicao);
+        final EnderecoResumoDTO enderecoResumoDTO = resultado.getEnderecos().get(0);
 
         assertNotNull(resultado);
         assertNotNull(resultado.getEnderecos());
         assertEquals(1, resultado.getEnderecos().size());
-        assertEquals("Nova Rua", resultado.getEnderecos().get(0).getRua());
-        assertEquals("Nova Cidade", resultado.getEnderecos().get(0).getCidade());
+        assertEquals("Nova Rua", enderecoResumoDTO.getRua());
+        assertEquals("Nova Cidade", enderecoResumoDTO.getCidade());
         verify(enderecoRepository).deleteAll(enderecosAntigos);
         verify(enderecoRepository).saveAll(anyList());
         verify(pessoaRepository).save(any(Pessoa.class));
