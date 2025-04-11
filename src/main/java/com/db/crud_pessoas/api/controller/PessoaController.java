@@ -3,6 +3,7 @@ package com.db.crud_pessoas.api.controller;
 import java.util.List;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -42,6 +43,12 @@ public class PessoaController {
     public ResponseEntity<PessoaDTO> atualizarPessoa(@PathVariable Long id, @RequestBody PessoaRequisicaoDTO requisicao) {
         PessoaDTO pessoaDTO = pessoaService.atualizarPessoa(id, requisicao); 
         return ResponseEntity.ok().body(pessoaDTO);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deletarPessoa(@PathVariable Long id) {
+        pessoaService.excluirPessoa(id); 
+        return ResponseEntity.noContent().build();
     }
     
 }

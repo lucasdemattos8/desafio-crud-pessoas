@@ -2,10 +2,13 @@ package com.db.crud_pessoas.api.controller;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -27,6 +30,8 @@ import com.db.crud_pessoas.api.dto.request.endereco.EnderecoRequisicaoDTO;
 import com.db.crud_pessoas.api.dto.request.pessoa.PessoaRequisicaoDTO;
 import com.db.crud_pessoas.domain.entity.Pessoa;
 import com.db.crud_pessoas.domain.service.interfaces.IPessoaService;
+
+import jakarta.persistence.EntityNotFoundException;
 
 public class PessoaControllerTest {
 
@@ -165,7 +170,7 @@ public class PessoaControllerTest {
     }
 
     @Test
-    void deveLancarExcecaoQuandoIDNaoExistirEmBanco() {
+    void naoDeveAtualizarELancarExcecaoQuandoIDNaoExistirEmBanco() {
         PessoaRequisicaoDTO requisicao = new PessoaRequisicaoDTO();
         final Long idASerBuscado = 1L;
 
@@ -175,6 +180,40 @@ public class PessoaControllerTest {
         Exception exception = assertThrows(IllegalArgumentException.class, 
             () -> pessoaController.atualizarPessoa(idASerBuscado, requisicao));
         assertEquals("Pessoa não encontrada com o id 1", exception.getMessage());
+    }
+
+    @Test
+    void deveDeletarPessoaComSucesso() {
+        final Long idASerBuscado = 1L;
+        
+        doNothing().when(pessoaService).excluirPessoa(anyLong());
+
+        ResponseEntity<?> resposta = pessoaController.deletarPessoa(idASerBuscado);
+
+        assertNotNull(resposta);
+        assertEquals(204, resposta.getStatusCode().value());
+        
+        assertNull(resposta.getBody());
+
+        verify(pessoaService, times(1)).excluirPessoa(anyLong());
+    }
+
+    @Test
+    void naoDeveDeletarELancarExcecaoQuandoIDNaoExistirEmBanco() {
+        final Long idASerBuscado = 1L;
+        final String mensagemEsperada = "Pessoa não encontrada com o id " + idASerBuscado;
+
+        doThrow(new EntityNotFoundException(mensagemEsperada))
+        .when(pessoaService)
+        .excluirPessoa(anyLong());
+
+        Exception exception = assertThrows(
+            EntityNotFoundException.class, 
+            () -> pessoaController.deletarPessoa(idASerBuscado));
+
+        assertNotNull(exception);
+        assertEquals("Pessoa não encontrada com o id " + idASerBuscado, exception.getMessage());
+        verify(pessoaService, times(1)).excluirPessoa(idASerBuscado);
     }
 
     private PessoaRequisicaoDTO criarPessoaRequisicaoDTO() {
