@@ -2,12 +2,16 @@ package com.db.crud_pessoas.api.controller;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -18,7 +22,10 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.http.ResponseEntity;
 
 import com.db.crud_pessoas.api.dto.PessoaDTO;
-import com.db.crud_pessoas.domain.service.PessoaService;
+import com.db.crud_pessoas.api.dto.request.endereco.EnderecoRequisicaoDTO;
+import com.db.crud_pessoas.api.dto.request.pessoa.PessoaRequisicaoDTO;
+import com.db.crud_pessoas.domain.entity.Pessoa;
+import com.db.crud_pessoas.domain.service.interfaces.IPessoaService;
 
 public class PessoaControllerTest {
 
@@ -26,7 +33,7 @@ public class PessoaControllerTest {
     private PessoaController pessoaController;
 
     @Mock
-    private PessoaService pessoaService;
+    private IPessoaService pessoaService;
 
     @BeforeEach
     void setUp() {
@@ -108,6 +115,63 @@ public class PessoaControllerTest {
         assertEquals(pessoa2.getNome(), pessoaRetornada2.getNome());
         
         verify(pessoaService, times(1)).listarTodasPessoas();
+    }
+
+    @Test
+    void deveCadastrarPessoaComSucesso() {
+        PessoaRequisicaoDTO requisicao = criarPessoaRequisicaoDTO();
+        PessoaDTO pessoaRetornada = criarPessoaDTO();
+        
+        when(pessoaService.criarPessoa(any(PessoaRequisicaoDTO.class)))
+            .thenReturn(pessoaRetornada);
+
+        ResponseEntity<PessoaDTO> resposta = pessoaController.cadastrarPessoa(requisicao);
+
+        assertNotNull(resposta);
+        assertEquals(201, resposta.getStatusCode().value());
+        assertEquals(pessoaRetornada.getId(), resposta.getBody().getId());
+        assertEquals(pessoaRetornada.getNome(), resposta.getBody().getNome());
+        verify(pessoaService, times(1)).criarPessoa(any(PessoaRequisicaoDTO.class));
+    }
+
+    @Test
+    void deveLancarExcecaoQuandoDadosInvalidos() {
+        PessoaRequisicaoDTO requisicao = new PessoaRequisicaoDTO();
+        when(pessoaService.criarPessoa(any(PessoaRequisicaoDTO.class)))
+            .thenThrow(new IllegalArgumentException("Dados inválidos"));
+
+        Exception exception = assertThrows(IllegalArgumentException.class, 
+            () -> pessoaController.cadastrarPessoa(requisicao));
+        assertEquals("Dados inválidos", exception.getMessage());
+    }
+
+    private PessoaRequisicaoDTO criarPessoaRequisicaoDTO() {
+        PessoaRequisicaoDTO dto = new PessoaRequisicaoDTO();
+        dto.setNome("João Silva");
+        dto.setCpf("12345678900");
+        dto.setDataDeNascimento(LocalDate.of(1990, 1, 1));
+        dto.setEnderecos(Arrays.asList(criarEnderecoRequisicaoDTO()));
+        return dto;
+    }
+
+    private EnderecoRequisicaoDTO criarEnderecoRequisicaoDTO() {
+        EnderecoRequisicaoDTO endereco = new EnderecoRequisicaoDTO();
+        endereco.setRua("Rua Teste");
+        endereco.setNumero(123);
+        endereco.setBairro("Bairro Teste");
+        endereco.setCidade("Cidade Teste");
+        endereco.setEstado("Estado Teste");
+        endereco.setCep("12345678");
+        return endereco;
+    }
+
+    private PessoaDTO criarPessoaDTO() {
+        Pessoa pessoa = new Pessoa();
+        pessoa.setId(1L);
+        pessoa.setNome("João Silva");
+        pessoa.setCpf("12345678900");
+        pessoa.setDataDeNascimento(LocalDate.of(1990, 1, 1));
+        return new PessoaDTO(pessoa);
     }
     
 }
