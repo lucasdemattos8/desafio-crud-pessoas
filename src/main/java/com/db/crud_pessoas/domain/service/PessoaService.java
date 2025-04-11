@@ -85,9 +85,12 @@ public class PessoaService implements IPessoaService {
         return new PessoaDTO(pessoaAtualizada);
     }
 
+    @Transactional
     public void excluirPessoa(Long id) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'excluirPessoa'");
+        if (!pessoaRepository.existsById(id)) {
+            throw new EntityNotFoundException("Pessoa não encontrada com o id " + id);
+        }
+        pessoaRepository.deleteById(id);
     }
 
     private List<PessoaDTO> converterListaDeDominioParaDTO(List<Pessoa> listaPessoas) {

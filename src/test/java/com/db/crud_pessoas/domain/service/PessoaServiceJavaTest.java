@@ -6,7 +6,10 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -225,7 +228,7 @@ public class PessoaServiceJavaTest {
     }
 
     @Test
-    void deveLancarExcecaoQuandoPessoaNaoEncontrada() {
+    void naoDeveAtualizarQuandoPessoaNaoEncontrada() {
         Long id = 1L;
         when(pessoaRepository.findById(id)).thenReturn(Optional.empty());
         
@@ -294,6 +297,32 @@ public class PessoaServiceJavaTest {
         assertNotNull(resultado);
         assertEquals("Nome Original", resultado.getNome());
         assertEquals("12345678900", resultado.getCpf());
+    }
+
+    @Test
+    void deveExcluirPessoaQuandoExistir() {
+        Long id = 1L;
+        when(pessoaRepository.existsById(id)).thenReturn(true);
+        doNothing().when(pessoaRepository).deleteById(id);
+
+        pessoaService.excluirPessoa(id);
+
+        verify(pessoaRepository).existsById(id);
+        verify(pessoaRepository).deleteById(id);
+    }
+
+    @Test
+    void naoDeveDeletarQuandoPessoaNaoEncontrada() {
+        Long pessoaASerDeletadaID = 1L;
+        when(pessoaRepository.existsById(pessoaASerDeletadaID)).thenReturn(false);
+
+        Exception exceptionResposta = assertThrows(
+            EntityNotFoundException.class,
+            () -> pessoaService.excluirPessoa(pessoaASerDeletadaID));
+        
+        assertEquals("Pessoa não encontrada com o id " + pessoaASerDeletadaID, exceptionResposta.getMessage());
+        verify(pessoaRepository).existsById(pessoaASerDeletadaID);
+        verify(pessoaRepository, never()).deleteById(anyLong());
     }
 
     private PessoaRequisicaoDTO criarPessoaRequisicaoDTO() {
