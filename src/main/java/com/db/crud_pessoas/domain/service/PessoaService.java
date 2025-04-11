@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 
 import com.db.crud_pessoas.api.dto.PessoaDTO;
 import com.db.crud_pessoas.api.dto.request.pessoa.PessoaRequisicaoDTO;
+import com.db.crud_pessoas.domain.entity.Endereco;
 import com.db.crud_pessoas.domain.entity.Pessoa;
 import com.db.crud_pessoas.domain.repository.EnderecoRepository;
 import com.db.crud_pessoas.domain.repository.PessoaRepository;
@@ -29,9 +30,37 @@ public class PessoaService implements IPessoaService {
         return listaDePessoasDTO;
     }
 
-    public PessoaDTO criarPessoa(PessoaRequisicaoDTO pessoa) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'criarPessoa'");
+    public PessoaDTO criarPessoa(PessoaRequisicaoDTO pessoaDTO) {
+        validarCadastroDTO(pessoaDTO);
+
+        Pessoa pessoaASerSalva = new Pessoa();
+        pessoaASerSalva.setNome(pessoaDTO.getNome());
+        pessoaASerSalva.setCpf(pessoaDTO.getCpf());
+        pessoaASerSalva.setDataDeNascimento(pessoaDTO.getDataDeNascimento());
+        
+        Pessoa pessoaSalva = pessoaRepository.save(pessoaASerSalva);
+        
+        if (pessoaDTO.getEnderecos() != null) {
+            List<Endereco> enderecos = pessoaDTO.getEnderecos().stream()
+                .map(enderecoDTO -> {
+                    Endereco endereco = new Endereco();
+                    endereco.setRua(enderecoDTO.getRua());
+                    endereco.setNumero(enderecoDTO.getNumero());
+                    endereco.setBairro(enderecoDTO.getBairro());
+                    endereco.setCidade(enderecoDTO.getCidade());
+                    endereco.setEstado(enderecoDTO.getEstado());
+                    endereco.setCep(enderecoDTO.getCep());
+                    endereco.setPessoa(pessoaSalva);
+                    return endereco;
+                })
+                .collect(Collectors.toList());
+            
+            enderecos = enderecoRepository.saveAll(enderecos);
+            
+            pessoaSalva.setEnderecos(enderecos);
+        }
+        
+        return new PessoaDTO(pessoaSalva);
     }
 
     public PessoaDTO atualizarPessoa(Long id, PessoaRequisicaoDTO pessoa) {
@@ -46,6 +75,26 @@ public class PessoaService implements IPessoaService {
 
     private List<PessoaDTO> converterListaDeDominioParaDTO(List<Pessoa> listaPessoas) {
         return listaPessoas.stream().map(PessoaDTO::new).collect(Collectors.toList());
+    }
+
+    private void validarCadastroDTO(PessoaRequisicaoDTO requisicaoDTO) {
+        final String CPFASerSalvo = requisicaoDTO.getCpf();
+
+        if (CPFASerSalvo == null) {
+            throw new IllegalArgumentException("O campo de CPF é um campo obrigatório.");
+        }
+        else if (CPFASerSalvo.length() != 11) {
+            throw new IllegalArgumentException("O campo de CPF deve conter 11 digitos.");
+        }
+        else if (pessoaRepository.existsByCpf(CPFASerSalvo)) {
+            throw new IllegalArgumentException("O CPF informado já existe em sistema.");
+        }
+        else if (requisicaoDTO.getNome() == null) {
+            throw new IllegalArgumentException("O campo de Nome é um campo obrigatório.");
+        }
+        else if (requisicaoDTO.getEnderecos() == null || requisicaoDTO.getEnderecos().isEmpty()) {
+            throw new IllegalArgumentException("O campo de Endereço é um campo obrigatório.");
+        }
     }
     
 }
