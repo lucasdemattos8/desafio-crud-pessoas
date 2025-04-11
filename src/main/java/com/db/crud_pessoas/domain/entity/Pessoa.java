@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -25,6 +26,7 @@ public class Pessoa {
     private LocalDate dataDeNascimento;
 
     @NotNull
+    @Column(unique = true)
     private String cpf;
 
     @OneToMany(mappedBy = "pessoa", cascade = CascadeType.ALL)
