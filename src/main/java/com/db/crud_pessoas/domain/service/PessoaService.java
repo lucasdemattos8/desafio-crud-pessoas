@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.db.crud_pessoas.api.dto.PessoaDTO;
 import com.db.crud_pessoas.api.dto.request.endereco.EnderecoRequisicaoDTO;
@@ -55,6 +56,7 @@ public class PessoaService implements IPessoaService {
         return new PessoaDTO(pessoaSalva);
     }
 
+    @Transactional
     public PessoaDTO atualizarPessoa(Long id, PessoaRequisicaoDTO pessoaRequisicaoDTO) {
         Pessoa pessoa = pessoaRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("Pessoa não encontrada com o id " + id));
         if (pessoaRequisicaoDTO.getNome() != null) {
@@ -79,7 +81,7 @@ public class PessoaService implements IPessoaService {
         }
 
         Pessoa pessoaAtualizada = pessoaRepository.save(pessoa);
-        
+
         return new PessoaDTO(pessoaAtualizada);
     }
 
