@@ -223,11 +223,7 @@ Agora você pode explorar as bases de dados, rodar queries e gerenciar tudo dire
 - O nome do host deve ser **igual ao nome do serviço no `docker-compose.yml`**
 - Se mudar variáveis, reinicie os containers com `docker-compose down -v && docker-compose up --build`
 
-```
-
 ---
-
-Se quiser, posso te gerar a versão `.md` pronta pra copiar ou até montar com exemplos de `.env` também. Quer?
 
 ## 🧪 Testes
 
