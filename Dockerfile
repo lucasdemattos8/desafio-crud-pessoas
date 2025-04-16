@@ -10,6 +10,5 @@ EXPOSE 8080
 EXPOSE 35729
 
 ENV DEFAULT_CMD="./mvnw spring-boot:run -Dspring-boot.run.jvmArguments='-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:8000'"
-ENV TEST_CMD="./mvnw test"
 
-CMD ["/bin/bash", "-c", "if [[ $PROFILE == 'test' ]]; then ${TEST_CMD}; else ${DEFAULT_CMD}; fi"]
+CMD ["/bin/bash", "-c", "${DEFAULT_CMD}"]
